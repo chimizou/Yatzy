@@ -11,7 +11,7 @@ import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 
 
-class DiceHand implements Iterable<Integer> {
+class DiceHand {
     private final int[] dice;
 
     public DiceHand(int d1, int d2, int d3, int d4, int d5) {
@@ -29,13 +29,19 @@ class DiceHand implements Iterable<Integer> {
         return dice[index];
     }
 
-    @Override
-    public Iterator<Integer> iterator() {
-        return stream().iterator();
-    }
-
     public Stream<Integer> stream() {
         return IntStream.of(dice).boxed();
+    }
+
+    public List<Integer> getStraightDice(DiceHand diceHand) {
+        Map<Integer, Long> counts = diceHand.stream()
+                .collect(groupingBy(d -> d, counting()));
+
+        return counts.entrySet().stream()
+                .filter(e -> e.getValue() == 1)
+                .distinct()
+                .map(Entry::getKey)
+                .collect(Collectors.toList());
     }
 }
 
@@ -125,39 +131,26 @@ public class Yatzy {
         return maxDie.orElse(0) * 4;
     }
 
-    public static int smallStraight(int d1, int d2, int d3, int d4, int d5) {
-        int[] tallies;
-        tallies = new int[6];
-        tallies[d1 - 1] += 1;
-        tallies[d2 - 1] += 1;
-        tallies[d3 - 1] += 1;
-        tallies[d4 - 1] += 1;
-        tallies[d5 - 1] += 1;
-        if (tallies[0] == 1 &&
-                tallies[1] == 1 &&
-                tallies[2] == 1 &&
-                tallies[3] == 1 &&
-                tallies[4] == 1)
-            return 15;
-        return 0;
+    public static int smallStraight(DiceHand diceHand) {
+        List<Integer> diceTwoOrMore = diceHand.getStraightDice(diceHand);
+
+        if (diceTwoOrMore.size() < 4) {
+            return 0;
+        }
+
+        return diceTwoOrMore.stream().mapToInt(Integer::intValue).sum() == 15 ? 15 : 0;
     }
 
-    public static int largeStraight(int d1, int d2, int d3, int d4, int d5) {
-        int[] tallies;
-        tallies = new int[6];
-        tallies[d1 - 1] += 1;
-        tallies[d2 - 1] += 1;
-        tallies[d3 - 1] += 1;
-        tallies[d4 - 1] += 1;
-        tallies[d5 - 1] += 1;
-        if (tallies[1] == 1 &&
-                tallies[2] == 1 &&
-                tallies[3] == 1 &&
-                tallies[4] == 1
-                && tallies[5] == 1)
-            return 20;
-        return 0;
+    public static int largeStraight(DiceHand diceHand) {
+        List<Integer> straightDice = diceHand.getStraightDice(diceHand);
+
+        if (straightDice.size() < 4) {
+            return 0;
+        }
+
+        return straightDice.stream().mapToInt(Integer::intValue).sum() == 20 ? 20 : 0;
     }
+
 
     public static int fullHouse(int d1, int d2, int d3, int d4, int d5) {
         int[] tallies;
