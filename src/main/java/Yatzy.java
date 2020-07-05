@@ -152,37 +152,19 @@ public class Yatzy {
     }
 
 
-    public static int fullHouse(int d1, int d2, int d3, int d4, int d5) {
-        int[] tallies;
-        boolean _2 = false;
-        int i;
-        int _2_at = 0;
-        boolean _3 = false;
-        int _3_at = 0;
+    public static int fullHouse(DiceHand diceHand) {
+        Map<Integer, Long> counts = diceHand.stream()
+                .collect(groupingBy(d -> d, counting()));
 
+        List<Integer> diceTwoOrMore = counts.entrySet().stream()
+                .filter(e -> e.getValue() >= 2)
+                .map(Entry::getKey)
+                .collect(Collectors.toList());
 
-        tallies = new int[6];
-        tallies[d1 - 1] += 1;
-        tallies[d2 - 1] += 1;
-        tallies[d3 - 1] += 1;
-        tallies[d4 - 1] += 1;
-        tallies[d5 - 1] += 1;
-
-        for (i = 0; i != 6; i += 1)
-            if (tallies[i] == 2) {
-                _2 = true;
-                _2_at = i + 1;
-            }
-
-        for (i = 0; i != 6; i += 1)
-            if (tallies[i] == 3) {
-                _3 = true;
-                _3_at = i + 1;
-            }
-
-        if (_2 && _3)
-            return _2_at * 2 + _3_at * 3;
-        else
+        if (diceTwoOrMore.size() != 2) {
             return 0;
+        }
+
+        return (int) counts.entrySet().stream().mapToLong(mapEntry -> mapEntry.getKey() * mapEntry.getValue()).sum();
     }
 }
